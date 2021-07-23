@@ -1,0 +1,24 @@
+{
+ "Article": [
+  {
+   "Id": "1",
+   "Setup": "['hip', 'hip']",
+   "Punchline": "(hip hip array)"
+  },
+  {
+    "Id": "2",
+    "Setup": "Did you hear the one about the guy with the broken hearing aid?",
+    "Punchline": "Neither did he."
+   },
+   {
+    "Id": "3",
+    "Setup": "Did you know you should always take an extra pair of pants golfing?",
+    "Punchline": "Just in case you get a hole in one."
+   },
+   {
+    "Id": "4",
+    "Setup": "How do you organize a space party?",
+    "Punchline": "You planet"
+   }
+ ]
+}
