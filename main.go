@@ -25,26 +25,28 @@ type Articles struct {
 var articles Articles
 var mode string
 var operationMode = &mode
-var articlesDryRun = Articles{
-	Article: []Article{
-		{
-			Id:        "1",
-			Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
-			Punchline: "Never mind...it's tearable",
-		},
-		{
-			Id:        "2",
-			Setup:     "Reading from memory Which side of the chicken has more feathers?",
-			Punchline: "The outside.",
-		},
-	},
-}
+
+// var articlesDryRun = Articles{
+// 	Article: []Article{
+// 		{
+// 			Id:        "1",
+// 			Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
+// 			Punchline: "Never mind...it's tearable",
+// 		},
+// 		{
+// 			Id:        "2",
+// 			Setup:     "Reading from memory Which side of the chicken has more feathers?",
+// 			Punchline: "The outside.",
+// 		},
+// 	},
+// }
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/articles", readAllArticles).Queries("mode", "{[dr, fl, db]}")
-	myRouter.HandleFunc("/article/{mode}/{id}", returnSingleArticle)
+	myRouter.HandleFunc("/articles", readAllArticles)
+	// myRouter.HandleFunc("/articles", readAllArticles).Queries("mode", "{[dr, fl, db]}")
+	myRouter.HandleFunc("/article/{id}", returnSingleArticle)
 	myRouter.HandleFunc("/article", createNewArticle).Methods("POST")
 	// myRouter.HandleFunc("/article/{id}", deleteArticle).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
@@ -69,30 +71,11 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 // }
 
 func readAllArticles(w http.ResponseWriter, r *http.Request) {
-	key := r.FormValue("mode")
-	if key == "fl" {
-		fmt.Println("Looking from file")
-		jokesFile := "jokes/jokesfile.json"
-		jokes, err := os.Open(jokesFile)
-		if err != nil {
-			fmt.Printf(err.Error())
-		}
-		defer jokes.Close()
-		byteValue, _ := ioutil.ReadAll(jokes)
-		json.Unmarshal(byteValue, &articles)
-		json.NewEncoder(w).Encode(articles)
-	} else if key == "db" {
-		fmt.Println("Reading from DB")
-	} else {
-		fmt.Println("It's a dry run")
-		json.NewEncoder(w).Encode(articlesDryRun)
-	}
-
+	json.NewEncoder(w).Encode(&articles)
 }
 
 func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Println("What are the options set in the URL", vars)
 	key := vars["id"]
 	for _, article := range articles.Article {
 		if article.Id == key {
@@ -115,34 +98,35 @@ func createNewArticle(w http.ResponseWriter, r *http.Request) {
 	writeToSource()
 }
 
-// func readFromSource() {
-// 		jokesFile := "jokes/jokesfile.json"
-// 		jokes, err := os.Open(jokesFile)
-// 		if err != nil {
-// 			fmt.Printf(err.Error())
-// 		}
-// 		defer jokes.Close()
-// 		byteValue, _ := ioutil.ReadAll(jokes)
-// 		json.Unmarshal(byteValue, &articles)
-// 	} else if *operationMode == "db" {
-// 		fmt.Println("Connecting to the DB")
-// 	} else {
-// 		articles = Articles{
-// 			Article: []Article{
-// 				{
-// 					Id:        "1",
-// 					Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
-// 					Punchline: "Never mind...it's tearable",
-// 				},
-// 				{
-// 					Id:        "2",
-// 					Setup:     "Reading from memory Which side of the chicken has more feathers?",
-// 					Punchline: "The outside.",
-// 				},
-// 			},
-// 		}
-// 	}
-// }
+func readFromSource() {
+	if *operationMode == "file" {
+		jokesFile := "jokes/jokesfile.json"
+		jokes, err := os.Open(jokesFile)
+		if err != nil {
+			fmt.Printf(err.Error())
+		}
+		defer jokes.Close()
+		byteValue, _ := ioutil.ReadAll(jokes)
+		json.Unmarshal(byteValue, &articles)
+	} else if *operationMode == "db" {
+		fmt.Println("Connecting to the DB")
+	} else {
+		articles = Articles{
+			Article: []Article{
+				{
+					Id:        "1",
+					Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
+					Punchline: "Never mind...it's tearable",
+				},
+				{
+					Id:        "2",
+					Setup:     "Reading from memory Which side of the chicken has more feathers?",
+					Punchline: "The outside.",
+				},
+			},
+		}
+	}
+}
 
 func writeToSource() {
 	if *operationMode == "file" {
@@ -159,6 +143,6 @@ func main() {
 	operationMode = flag.String("use", "dryrun", "Options : file / db")
 	flag.Parse()
 	fmt.Println("Operation mode", *operationMode)
-	// readFromSource()
+	readFromSource()
 	handleRequests()
 }
