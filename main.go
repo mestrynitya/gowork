@@ -8,12 +8,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
 type Article struct {
-	Id        string `json:"Id"`
+	Id        int    `json:"Id"`
 	Setup     string `json:"Setup"`
 	Punchline string `json:"Punchline"`
 }
@@ -25,21 +26,6 @@ type Articles struct {
 var articles Articles
 var mode string
 var operationMode = &mode
-
-// var articlesDryRun = Articles{
-// 	Article: []Article{
-// 		{
-// 			Id:        "1",
-// 			Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
-// 			Punchline: "Never mind...it's tearable",
-// 		},
-// 		{
-// 			Id:        "2",
-// 			Setup:     "Reading from memory Which side of the chicken has more feathers?",
-// 			Punchline: "The outside.",
-// 		},
-// 	},
-// }
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -77,8 +63,9 @@ func readAllArticles(w http.ResponseWriter, r *http.Request) {
 func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["id"]
+	keyInt, _ := strconv.Atoi(key)
 	for _, article := range articles.Article {
-		if article.Id == key {
+		if article.Id == keyInt {
 			json.NewEncoder(w).Encode(article)
 		}
 	}
@@ -110,21 +97,6 @@ func readFromSource() {
 		json.Unmarshal(byteValue, &articles)
 	} else if *operationMode == "db" {
 		fmt.Println("Connecting to the DB")
-	} else {
-		articles = Articles{
-			Article: []Article{
-				{
-					Id:        "1",
-					Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
-					Punchline: "Never mind...it's tearable",
-				},
-				{
-					Id:        "2",
-					Setup:     "Reading from memory Which side of the chicken has more feathers?",
-					Punchline: "The outside.",
-				},
-			},
-		}
 	}
 }
 
@@ -143,6 +115,22 @@ func main() {
 	operationMode = flag.String("use", "dryrun", "Options : file / db")
 	flag.Parse()
 	fmt.Println("Operation mode", *operationMode)
-	readFromSource()
+	articles = Articles{
+		Article: []Article{
+			{
+				Id:        1,
+				Setup:     "Reading from memory Want to hear a joke about a piece of paper?",
+				Punchline: "Never mind...it's tearable",
+			},
+			{
+				Id:        2,
+				Setup:     "Reading from memory Which side of the chicken has more feathers?",
+				Punchline: "The outside.",
+			},
+		},
+	}
+	if *operationMode != "dryrun" {
+		readFromSource()
+	}
 	handleRequests()
 }

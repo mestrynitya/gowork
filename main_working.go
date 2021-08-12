@@ -61,14 +61,14 @@ func deleteArticle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	for index,article := range Articles {
+	for index, article := range Articles {
 		if article.Id == id {
 			Articles = append(Articles[:index], Articles[index+1:]...)
 		}
 	}
 }
 
-func main() {
+func main_old() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
 	Articles = []Article{
 		{Id: "1", Title: "Hello", Desc: "Article Description", Content: "Article Content"},
